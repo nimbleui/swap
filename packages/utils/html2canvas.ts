@@ -23,10 +23,14 @@ const CSSRules = [
   "z-index",
 ]
 
-function setElementStyles(el: Element, styleEl: Element) {
+function setElementStyles(el: Element, styleEl: Element, isTop: boolean) {
   const css = getComputedStyle(el);
   CSSRules.forEach((key) => {
-    (styleEl as HTMLElement).style.setProperty(key, css.getPropertyValue(key))
+    if (isTop && (key == 'top' || key == 'left' || key == 'margin')) {
+      (styleEl as HTMLElement).style.setProperty(key, "0")
+    } else {
+      (styleEl as HTMLElement).style.setProperty(key, css.getPropertyValue(key))
+    }
   })
 }
 
@@ -46,7 +50,7 @@ function imgUrlToBase64(img: HTMLImageElement, styleEl: HTMLImageElement) {
 function setStyle(el: Element, cloneDom?: Element ) {
   const tagName = el.tagName.toLowerCase();
   const cloneEl = el.cloneNode() as Element;
-  setElementStyles(el, cloneEl);
+  setElementStyles(el, cloneEl, !cloneDom);
   if (tagName == 'img') {
     imgUrlToBase64(el as HTMLImageElement, cloneEl as HTMLImageElement)
   }
