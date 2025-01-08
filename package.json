@@ -1,0 +1,18 @@
+{
+  "name": "nimble-swap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "docs:dev": "pnpm -r --filter=@nimble-ui/docs run dev"
+  },
+  "author": "",
+  "license": "ISC",
+  "workspaces": [
+    "packages/swap",
+    "packages/utils",
+    "packages/constant",
+    "docs",
+    "packages/types"
+  ]
+}
