@@ -10,7 +10,7 @@
     >
       <div class="content">{{ item.title }}</div>
 
-      <img src="http://gips2.baidu.com/it/u=195724436,3554684702&fm=3028&app=3028&f=JPEG&fmt=auto" />
+      <img crossorigin="anonymous" src="http://gips2.baidu.com/it/u=195724436,3554684702&fm=3028&app=3028&f=JPEG&fmt=auto" />
     </div>
   </div>
 </template>
@@ -24,12 +24,14 @@ const list = reactive([
   { id: 1, title: '测试1', top: 0 },
   { id: 2, title: '测试2', top: 60 },
   { id: 3, title: '测试3', top: 120 },
-  { id: 4, title: '测试3', top: 180 },
+  { id: 4, title: '测试4', top: 180 },
 ]);
 const warpRef = ref<HTMLElement>();
 const getEl = () => warpRef.value!;
 swap(getEl, {
-  model: "swap"
+  model: "swap",
+  // dragAxis: "x"
+  swapMode: "hover"
 })
 </script>
 
@@ -45,6 +47,8 @@ swap(getEl, {
     width: 180px;
     height: 50px;
     background-color: red;
+    border-radius: 5px;
+    overflow: hidden;
 
     .content {
       position: absolute;

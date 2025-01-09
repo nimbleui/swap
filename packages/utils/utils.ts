@@ -1,3 +1,5 @@
+import { MoveRect, Position } from "@nimble-ui/types";
+
 export function isFunction(el: unknown): el is Function {
   return typeof el === 'function';
 }
@@ -20,4 +22,17 @@ export function getParentTarget(
     parent = parent.parentElement;
   }
   return null;
+}
+
+export function swapRect(point: Position, rect: MoveRect) {
+  return (
+    point.x >= rect.left &&
+    point.x <= rect.left + rect.width &&
+    point.y >= rect.top &&
+    point.y <= rect.top + rect.height
+  )
+}
+
+export function createId() {
+  return Math.random().toString(36).substring(2);
 }

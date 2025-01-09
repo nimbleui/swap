@@ -6,7 +6,9 @@ export type AnimateConfig = {
   easing: (t: number) => number
 }
 
-export type Vec2 = { x: number; y: number }
+export type Vec2 = { x: number; y: number };
+
+export type Position = { x: number; y: number };
 
 export interface SwapOptions {
   model: ModelType;
@@ -30,5 +32,7 @@ export interface MoveRect {
   width: number;
   height: number;
   el: Element;
+  animate?: boolean;
 }
 export type MoveRectList = MoveRect[];
+export type MoveRectObj = { [key: string]: MoveRect };

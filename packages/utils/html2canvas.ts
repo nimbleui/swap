@@ -21,6 +21,8 @@ const CSSRules = [
   "flex",
   "position",
   "z-index",
+  "border-radius",
+  "overflow"
 ]
 
 function setElementStyles(el: Element, styleEl: Element, isTop: boolean) {
@@ -55,32 +57,33 @@ function setStyle(el: Element, cloneDom?: Element ) {
     imgUrlToBase64(el as HTMLImageElement, cloneEl as HTMLImageElement)
   }
 
-  if (cloneDom) {
-    cloneDom.appendChild(cloneEl);
-  }
-
-  const child = el.children;
-  if (child.length) {
-    for (let i = 0; i < child?.length; i++) {
-      setStyle(child[i], cloneDom || cloneEl)
+  if (cloneDom) cloneDom.appendChild(cloneEl);
+  for (let i = 0; i < el.childNodes.length; i++) {
+    const node = el.childNodes[i] as Element;
+    if (node.nodeType == 1) {
+      setStyle(node, cloneDom || cloneEl)
+    } else {
+      cloneEl.appendChild(node.cloneNode())
     }
-  }
-  if (cloneEl && el.textContent) {
-    cloneEl.appendChild(document.createTextNode(el.textContent))
   }
 
   return cloneEl
 }
 
 export function html2canvas(content: Element) {
-  if (!content) return
   const cloneDom = setStyle(content);
   const { width, height } = content.getBoundingClientRect();
   const xml = new XMLSerializer().serializeToString(cloneDom);
   const img = new Image();
   img.src = `data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
   <foreignObject x="0" y="0" width="100%" height="100%">${xml}</foreignObject></svg>`.replace(/\n/g, '').replace(/\t/g, '').replace(/#/g, '%23');
+  img.onload = () => {
+    ctx?.drawImage(img, 0, 0, width, height);
+  }
 
-  document.body.appendChild(img);
-  return img
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  return canvas
 }

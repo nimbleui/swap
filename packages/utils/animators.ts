@@ -23,7 +23,7 @@ export function getAnimateConfig(animationType: AnimationType): AnimateConfig {
   }
 }
 
-export function animate<P extends { [key: string]: number | Vec2 }>(
+export function animate<P extends { [key: string]: number | Vec2 | {[key: string]: number} }>(
   from: P,
   to: { [K in keyof P]: P[K] },
   cb: (value: P, done: boolean, progress: number) => void,
