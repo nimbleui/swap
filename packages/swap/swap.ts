@@ -1,6 +1,6 @@
 import move, { type MoveEventCallbackParam, type MoveElType } from "@nimble-ui/move";
 import type { SwapOptions, Position, MoveRect, DragAxis, MoveRectList } from "@nimble-ui/types";
-import { SWAP_SLOT, SWAP_ITEM, SWAP_ACTIVE } from "@nimble-ui/constant";
+import { SWAP_SLOT, SWAP_ITEM, SWAP_ACTIVE, SWAP_ID } from "@nimble-ui/constant";
 import { getParentTarget, animate, html2canvas, swapRect, createId, getAnimateConfig, getDOMRect, setStyle, removeStyle } from "@nimble-ui/utils";
 
 interface DownValue {
@@ -14,7 +14,10 @@ interface DownValue {
 
 function getAllMoveSiteInfo(target: Element, warp: Element): MoveRect[]  {
   const moves = warp.querySelectorAll(`[${SWAP_SLOT}]`);
-  const current = getParentTarget(target, (el) => !!el.dataset.swapSlot);
+  const current = getParentTarget(target, (el) => {
+    const value = el.dataset.swapSlot
+    return value === '' || !!value
+  });
   const moveSite: MoveRect[] = [];
   if (!current) return moveSite;
 
@@ -86,7 +89,7 @@ function handleActive(moveSite: MoveRect[], el?: Element) {
   el && el.setAttribute(SWAP_ACTIVE, 'true');
 }
 
-const handleAnimate = (data: MoveEventCallbackParam) => {
+const handleAnimate = (data: MoveEventCallbackParam, options: SwapOptions) => {
   const { value, moveX, moveY, binElement } = data;
   const { moveSite } = (value.down || {}) as DownValue;
   const animateItem = findSwayRect({ x: moveX, y: moveY }, moveSite);
@@ -114,8 +117,12 @@ const handleAnimate = (data: MoveEventCallbackParam) => {
     });
 
     if (done) {
+      const id = animateItem.el.getAttribute(SWAP_ID);
+      const currentId = active.current.getAttribute(SWAP_ID);
+      options.onSwap?.(id, currentId);
+
       animateItem.animate = false;
-      removeStyle(item, ["transform", "z-index", "position", "width", "height"])
+      removeStyle(item, ["transform", "z-index", "position", "width", "height"]);
     }
   }, getAnimateConfig("spring"))
 }
@@ -159,12 +166,12 @@ export function swap(el: MoveElType, options: SwapOptions) {
     },
     move(data) {
       calculateSite(dragAxis, data);
-      swapMode == 'hover' && handleAnimate(data);
+      swapMode == 'hover' && handleAnimate(data, options);
     },
     up(data) {
       const { value } = data
       const { cloneDom, moveSite } = (value.down || {}) as DownValue;
-      swapMode == 'drop' && handleAnimate(data);
+      swapMode == 'drop' && handleAnimate(data, options);
       goBackSite(cloneDom, data.binElement!)
       // 移除克隆元素
       handleActive(moveSite);

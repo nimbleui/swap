@@ -12,10 +12,12 @@ export type Position = { x: number; y: number };
 export type DragAxis = "both" | "y" | "x";
 export type SwapMode = "hover" | "drop"
 
+type ElementType = Element | (() => Element)
+
 export interface SwapOptions {
   model: ModelType;
   /** 容器 */
-  current?: Element | (() => Element);
+  current?: ElementType;
   /** 是否自动滑动滚动条 */
   autoScroll?: boolean;
   /** 动画 */
@@ -24,6 +26,12 @@ export interface SwapOptions {
   swapMode?: SwapMode;
   /** 锁定拖拽方向 */
   dragAxis?: DragAxis;
+  /** 拖拽到目标函数 */
+  target?: ElementType;
+  /** 交换成功执行回调函数 */
+  onSwap?: (id: string | null, currentId: string | null) => void;
+  /** 拖拽到目标元素并且松开执行回调函数 */
+  onDrop?: () => void;
 }
 
 export interface MoveRect {

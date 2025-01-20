@@ -1,14 +1,13 @@
 <template>
   <div ref="warpRef" class="warp">
     <div
-      v-for="item in list"
+      v-for="(item, index) in list"
       :key="item.id"
-      :data-swap-id="item.id"
+      :data-swap-id="index"
       class="move"
-      :style="{ top: `${item.top}px` }"
-      :data-swap-slot="item.id"
+      data-swap-slot
     >
-    <div class="item" :data-swap-item="item.id">
+    <div class="item" data-swap-item>
       <div class="content">{{ item.title }}</div>
       <img crossorigin="anonymous" src="http://gips2.baidu.com/it/u=195724436,3554684702&fm=3028&app=3028&f=JPEG&fmt=auto" />
     </div>
@@ -48,8 +47,11 @@ const warpRef = ref<HTMLElement>();
 const getEl = () => warpRef.value!;
 swap(getEl, {
   model: "swap",
-  // dragAxis: "x",
-  swapMode: 'hover'
+  swapMode: 'hover',
+  onSwap(id, currentId) {
+    if (!id || !currentId) return
+    list[id] = list.splice(+currentId, 1, list[id])[0]
+  },
 })
 
 const containerRef = ref<HTMLElement>()
@@ -69,13 +71,14 @@ swap(() => containerRef.value, {
   transform-origin: left top;
 
   .move {
-    position: absolute;
     width: 180px;
     height: 50px;
     background-color: #e9e9e9;
     border-radius: 5px;
+    margin-bottom: 50px;
 
     .item {
+      position: relative;
       border-radius: 5px;
       overflow: hidden;
       .content {
