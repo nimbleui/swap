@@ -115,13 +115,32 @@ const handleAnimate = (data: MoveEventCallbackParam) => {
 
     if (done) {
       animateItem.animate = false;
-      removeStyle(item, ["transform", "z-index", "position"])
+      removeStyle(item, ["transform", "z-index", "position", "width", "height"])
     }
   }, getAnimateConfig("spring"))
 }
 
-function goBackSite() {
-  
+function goBackSite(clone: Element | null, content: Element) {
+  if (!clone) return
+  const { left, top } = getDOMRect(clone);
+  const active = getActive(content);
+  if (!active || !active.currentItem) return;
+
+  const { left: l, top: t, width: w, height: h } = getDOMRect(active.currentItem);
+  setStyle(active.currentItem, { opacity: '1' });
+  animate({ x: left - l, y: top - t, w, h }, { x: 0, y: 0, w, h }, (value, done) => {
+    setStyle(active.currentItem, {
+      width: `${w}px`,
+      height: `${h}px`,
+      'z-index': '9999',
+      position: "absolute",
+      transform: `translate(${value.x}px,${value.y}px)`,
+    });
+
+    if (done) {
+      removeStyle(active.currentItem, ["transform", "z-index", "position", 'width', 'height', 'opacity', 'left', 'top'])
+    }
+  }, getAnimateConfig("spring"))
 }
 
 
@@ -145,9 +164,10 @@ export function swap(el: MoveElType, options: SwapOptions) {
     up(data) {
       const { value } = data
       const { cloneDom, moveSite } = (value.down || {}) as DownValue;
-      handleActive(moveSite);
       swapMode == 'drop' && handleAnimate(data);
+      goBackSite(cloneDom, data.binElement!)
       // 移除克隆元素
+      handleActive(moveSite);
       cloneDom && document.body.removeChild(cloneDom);
     },
   });

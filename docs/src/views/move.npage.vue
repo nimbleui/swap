@@ -56,7 +56,7 @@ const containerRef = ref<HTMLElement>()
 swap(() => containerRef.value, {
   model: "swap",
   // dragAxis: "x",
-  swapMode: 'hover'
+  swapMode: 'drop'
 })
 </script>
 
