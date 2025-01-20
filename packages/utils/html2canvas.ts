@@ -22,7 +22,7 @@ const CSSRules = [
   "position",
   "z-index",
   "border-radius",
-  "overflow"
+  "overflow",
 ]
 
 function setElementStyles(el: Element, styleEl: Element, isTop: boolean) {
@@ -77,13 +77,13 @@ export function html2canvas(content: Element) {
   const img = new Image();
   img.src = `data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
   <foreignObject x="0" y="0" width="100%" height="100%">${xml}</foreignObject></svg>`.replace(/\n/g, '').replace(/\t/g, '').replace(/#/g, '%23');
-  img.onload = () => {
-    ctx?.drawImage(img, 0, 0, width, height);
-  }
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  return canvas
+  // img.onload = () => {
+  //   ctx?.drawImage(img, 0, 0, width, height);
+  // }
+  // document.body.append(img)
+  // const canvas = document.createElement("canvas");
+  // canvas.width = width;
+  // canvas.height = height;
+  // const ctx = canvas.getContext("2d");
+  return img
 }

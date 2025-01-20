@@ -1,100 +1,154 @@
-import move, { type MoveElType } from "@nimble-ui/move";
-import type { SwapOptions, MoveRectObj, Position } from "@nimble-ui/types";
-import { SWAP_TYPE } from "@nimble-ui/constant";
-import { getParentTarget, animate, html2canvas, swapRect, createId, getAnimateConfig } from "@nimble-ui/utils";
+import move, { type MoveEventCallbackParam, type MoveElType } from "@nimble-ui/move";
+import type { SwapOptions, Position, MoveRect, DragAxis, MoveRectList } from "@nimble-ui/types";
+import { SWAP_SLOT, SWAP_ITEM, SWAP_ACTIVE } from "@nimble-ui/constant";
+import { getParentTarget, animate, html2canvas, swapRect, createId, getAnimateConfig, getDOMRect, setStyle, removeStyle } from "@nimble-ui/utils";
 
-function getAllMoveSiteInfo(target: Element, warp: Element) {
-  const moves = warp.querySelectorAll(`[${SWAP_TYPE}="move"]`);
-  const current = getParentTarget(target, (el) => el.dataset.swapType == 'move');
+interface DownValue {
+  moveSite: MoveRect[];
+  cloneDom: Element | null;
+  left: number;
+  top: number;
+  current: Element;
+  currentItem: Element | null;
+}
 
-  const moveSite: MoveRectObj = {}
-  let activeId: string = '';
-  if (!current) return { moveSite, current, activeId };
+function getAllMoveSiteInfo(target: Element, warp: Element): MoveRect[]  {
+  const moves = warp.querySelectorAll(`[${SWAP_SLOT}]`);
+  const current = getParentTarget(target, (el) => !!el.dataset.swapSlot);
+  const moveSite: MoveRect[] = [];
+  if (!current) return moveSite;
 
   for (let i = 0; i < moves.length; i++) {
     const el = moves[i];
-    const { height, width, left, top, bottom, right } = el.getBoundingClientRect();
     const id = createId();
-    if (el == current) activeId = id;
-    moveSite[id] = { height, width, left, top, bottom, right, el}
+    if (el == current) el.setAttribute(SWAP_ACTIVE, 'true');
+    const { width, height } = el.getBoundingClientRect();
+    moveSite.push({ el, width, height, id })
   }
-
-  return { moveSite, current, activeId, currentSite: moveSite[activeId]  };
+  return moveSite;
 }
 
-function cloneNode(current: Element | null) {
-  if (!current) return
-  const canvas = html2canvas(current);
+// 克隆元素
+function cloneNode(current: Element | null, item: Element | null) {
+  if (!item || !current) return
+  const canvas = html2canvas(item);
 
   const warp = document.createElement("div");
   const { width, height, left, top } = current.getBoundingClientRect();
   warp.appendChild(canvas);
-  warp.style.setProperty("opacity", "0");
-  warp.style.setProperty('width', `${width}px`);
-  warp.style.setProperty('height', `${height}px`);
-  warp.style.setProperty("position", "absolute");
-  warp.style.setProperty('transform', `translate(${left}px, ${top}px)`);
-
+  setStyle(warp, {
+    top: "0",
+    left: "0",
+    opacity: "0",
+    width: `${width}px`,
+    height: `${height}px`,
+    position: "absolute",
+    "z-index": "9999999",
+    transform: `translate(${left}px, ${top}px)`
+  })
   document.body.appendChild(warp);
   return warp;
 }
 
-// animate({ x: 100, y: 100 }, { x: 0, y: 0 }, (value) => {
-//   console.log(value)
-// })
-
-function findSwayRect(point: Position, moveSite: MoveRectObj, activeId: string) {
-  const ids = Object.keys(moveSite);
-
-  let swapId = ''
-  for (let i = 0; i < ids.length; i++) {
-    const id = ids[i];
-    const site = moveSite[id];
-    if (activeId != id && swapRect(point, site)) {
-      swapId = id
-      break;
-    }
+// 查找交叉的元素
+function findSwayRect(point: Position, moveSite: MoveRectList) {
+  for (let i = 0; i < moveSite.length; i++) {
+    const item = moveSite[i];
+    const active = item.el.getAttribute(SWAP_ACTIVE);
+    if (active) continue;
+    if (swapRect(point, item.el)) {
+      item.item = item.el.querySelector(`[${SWAP_ITEM}]`);
+      return item
+    };
   }
-  return swapId
+  return null;
 }
+
+// 获取选择的元素
+function getActive(el: Element | null) {
+  const current = el?.querySelector(`[${SWAP_ACTIVE}]`);
+  if (!current) return null;
+  return { current, currentItem: current.querySelector(`[${SWAP_ITEM}]`) };
+}
+
+// 处理滑动的元素
+function calculateSite(dragAxis: DragAxis, { disX, disY, value }: MoveEventCallbackParam) {
+  const { cloneDom, left, top, currentItem } = (value.down || {}) as DownValue;
+  // 判断锁定方向
+  const x = left + (dragAxis == 'both' || dragAxis == 'x' ? disX : 0);
+  const y = top + (dragAxis == 'both' || dragAxis == 'y' ? disY : 0);
+  setStyle(cloneDom, { opacity: "1", transform: `translate(${x}px, ${y}px)` });
+  if (currentItem) setStyle(currentItem, { opacity: '0' });
+}
+
+function handleActive(moveSite: MoveRect[], el?: Element) {
+  moveSite.forEach((item) => item.el.removeAttribute(SWAP_ACTIVE));
+  el && el.setAttribute(SWAP_ACTIVE, 'true');
+}
+
+const handleAnimate = (data: MoveEventCallbackParam) => {
+  const { value, moveX, moveY, binElement } = data;
+  const { moveSite } = (value.down || {}) as DownValue;
+  const animateItem = findSwayRect({ x: moveX, y: moveY }, moveSite);
+  const active = getActive(binElement!);
+  if (!animateItem || animateItem.animate || !active) return;
+
+  const { el, item } = animateItem;
+  const { left, top, height, width } = getDOMRect(el);
+  const { left: l, top: t, height: h, width: w } = getDOMRect(active.current);
+  if (!item) return
+
+  // 修改选择选中的元素
+  handleActive(moveSite, el);
+  // 设置滑动元素
+  animateItem.animate = true;
+  active.current.appendChild(animateItem.item!);
+  animateItem.el.appendChild(active.currentItem!);
+  animate({ x: left - l, y: top - t, width, height }, { x: 0, y: 0, width: w, height: h }, (value, done) => {
+    setStyle(item, {
+      'z-index': '9999',
+      position: "absolute",
+      width: `${value.width}px`,
+      height: `${value.height}px`,
+      transform: `translate(${value.x}px,${value.y}px)`,
+    });
+
+    if (done) {
+      animateItem.animate = false;
+      removeStyle(item, ["transform", "z-index", "position"])
+    }
+  }, getAnimateConfig("spring"))
+}
+
+function goBackSite() {
+  
+}
+
 
 export function swap(el: MoveElType, options: SwapOptions) {
   const { dragAxis = 'both', swapMode = 'drop' } = options;
   const { data, observe } = move(el, {
     prevent: true,
     down({ e, binElement }, setValue) {
-      const data = getAllMoveSiteInfo(e.target as Element, binElement!)
-      const cloneDom = cloneNode(data.current);
+      const moveSite = getAllMoveSiteInfo(e.target as Element, binElement!);
+      const data = getActive(binElement!);
+      if (!data) return;
 
-      setValue({ ...data, cloneDom });
+      const rect = data.current?.getBoundingClientRect();
+      const cloneDom = cloneNode(data.current, data.currentItem);
+      setValue({ ...data, moveSite, cloneDom, left: rect?.left || 0, top: rect?.top || 0  });
     },
-    move({ disY, disX, value, moveX, moveY }) {
-      const { cloneDom, activeId, moveSite, currentSite } = value.down || {};
-      // 判断锁定方向
-      const { left = 0, top = 0 } = currentSite;
-      const x = left + (dragAxis == 'both' || dragAxis == 'x' ? disX : 0);
-      const y = top + (dragAxis == 'both' || dragAxis == 'y' ? disY : 0);
-      cloneDom.style.setProperty("opacity", "0.4");
-      cloneDom.style.setProperty('transform', `translate(${x}px, ${y}px)`);
-
-      if (swapMode != 'hover') return;
-      const id = findSwayRect({ x: moveX, y: moveY }, moveSite, activeId);
-      const item = moveSite[id];
-      if (!id || item.animate) return;
-
-      moveSite[id].animate = true;
-      const { left: l, top: t } = moveSite[activeId];
-      moveSite[id] = moveSite[activeId];
-      moveSite[activeId] = item;
-      animate({ x: 0, y: 0 }, { x: l - item.left, y: t - item.top }, (value, done) => {
-        item.el.style.setProperty('transform', `translate(${value.x}px, ${value.y}px)`);
-        if (done) {
-          item.animate = false;
-        }
-      }, getAnimateConfig("spring"))
+    move(data) {
+      calculateSite(dragAxis, data);
+      swapMode == 'hover' && handleAnimate(data);
     },
-    up({ value }) {
-      document.body.removeChild(value.down.cloneDom);
+    up(data) {
+      const { value } = data
+      const { cloneDom, moveSite } = (value.down || {}) as DownValue;
+      handleActive(moveSite);
+      swapMode == 'drop' && handleAnimate(data);
+      // 移除克隆元素
+      cloneDom && document.body.removeChild(cloneDom);
     },
   });
 }

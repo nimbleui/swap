@@ -9,6 +9,8 @@ export type AnimateConfig = {
 export type Vec2 = { x: number; y: number };
 
 export type Position = { x: number; y: number };
+export type DragAxis = "both" | "y" | "x";
+export type SwapMode = "hover" | "drop"
 
 export interface SwapOptions {
   model: ModelType;
@@ -19,20 +21,24 @@ export interface SwapOptions {
   /** 动画 */
   animation?: AnimationType;
   /** 交换方式 */
-  swapMode?: "hover" | "drop";
+  swapMode?: SwapMode;
   /** 锁定拖拽方向 */
-  dragAxis?: "both" | "y" | "x";
+  dragAxis?: DragAxis;
 }
 
 export interface MoveRect {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
+  id: string;
   width: number;
   height: number;
   el: Element;
+  item?: Element | null;
   animate?: boolean;
 }
+export interface RectInfo {
+  left: number;
+  top: number;
+  height: number;
+  width: number;
+}
+
 export type MoveRectList = MoveRect[];
-export type MoveRectObj = { [key: string]: MoveRect };
