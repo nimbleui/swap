@@ -1,9 +1,9 @@
 <template>
   <div ref="warpRef" class="warp">
     <div
-      v-for="(item, index) in list"
+      v-for="item in list"
       :key="item.id"
-      :data-swap-id="index"
+      :data-swap-id="item.id"
       class="move"
       data-swap-slot
     >
@@ -35,22 +35,24 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { swap } from "@nimble-ui/swap";
-defineOptions({ name: 'move' });
+defineOptions({ name: "YMove" });
 
 const list = reactive([
-  { id: 1, title: '测试1', top: 0 },
-  { id: 2, title: '测试2', top: 100 },
-  { id: 3, title: '测试3', top: 200 },
-  { id: 4, title: '测试4', top: 300 },
+  { id: 1, title: '测试1' },
+  { id: 2, title: '测试2' },
+  { id: 3, title: '测试3' },
+  { id: 4, title: '测试4' },
 ]);
 const warpRef = ref<HTMLElement>();
 const getEl = () => warpRef.value!;
 swap(getEl, {
   model: "swap",
   swapMode: 'hover',
-  onSwap(id, currentId) {
-    if (!id || !currentId) return
-    list[id] = list.splice(+currentId, 1, list[id])[0]
+  onSwapStart(id, currentId) {
+    if (!id || !currentId) return;
+    const idIndex = list.findIndex((el) => el.id == +id);
+    const currentIndex = list.findIndex((el) => el.id == +currentId);
+    list[idIndex] = list.splice(+currentIndex, 1, list[idIndex])[0];
   },
 })
 

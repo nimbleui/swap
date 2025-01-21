@@ -28,18 +28,21 @@ export interface SwapOptions {
   dragAxis?: DragAxis;
   /** 拖拽到目标函数 */
   target?: ElementType;
-  /** 交换成功执行回调函数 */
+  /** 开始交换回调函数 */
+  onSwapStart?: (id: string | null, currentId: string | null) => void;
+  /** 交换中回调函数 */
   onSwap?: (id: string | null, currentId: string | null) => void;
+  /** 交换成功回调函数 */
+  onSwapEnd?: (id: string | null, currentId: string | null) => void;
   /** 拖拽到目标元素并且松开执行回调函数 */
   onDrop?: () => void;
 }
 
 export interface MoveRect {
-  id: string;
   width: number;
   height: number;
   el: Element;
-  item?: Element | null;
+  child?: Element | null;
   animate?: boolean;
 }
 export interface RectInfo {
