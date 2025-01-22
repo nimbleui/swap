@@ -46,6 +46,7 @@ const list = reactive([
 const warpRef = ref<HTMLElement>();
 const getEl = () => warpRef.value!;
 swap(getEl, {
+  model: 'swap',
   swapMode: 'hover',
   items: () => list,
   keyField: 'id',
@@ -69,29 +70,32 @@ swap(() => containerRef.value, {
 .warp {
   width: 200px;
   position: relative;
-  height: 400px;
   transform: scale(1);
   transform-origin: left top;
 
   .move {
-    width: 180px;
-    height: 50px;
     background-color: #e9e9e9;
     border-radius: 5px;
     margin-bottom: 50px;
+    width: 200px;
+    height: 100px;
 
     .item {
       position: relative;
       border-radius: 5px;
       overflow: hidden;
+      width: 200px;
+      height: 100px;
       .content {
         position: absolute;
         z-index: 333;
+        height: 100%;
+        width: 100%;
       }
 
       img {
-        width: 180px;
-        height: 50px;
+        width: 100%;
+        height: 100%;
         display: block;
       }
     }

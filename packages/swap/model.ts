@@ -11,7 +11,7 @@ export function handleModel(data: MoveEventCallbackParam, options: SwapOptions) 
   const el = isFunctionOrValue(dropTarget);
   const check = swapRect({x: endX, y: endY}, el)
 
-  if (model == 'swap' || (!check && model == 'both')) {
+  if (model == 'swap' || !check) {
     swapMode == 'drop' && handleAnimate(data, options);
     goBackAnimate(cloneDom, binElement!, animation);
   }
