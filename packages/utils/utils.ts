@@ -33,9 +33,7 @@ export function getDOMRect(el: Element | null) {
   return { left, top, height, width }
 }
 
-export function swapRect(point: Position, el: null): false;
-export function swapRect(point: Position, el: Element): boolean;
-export function swapRect(point: Position, el: Element | null) {
+export function swapRect(point: Position, el?: Element | null) {
   if (!el) return false
   const rect = getDOMRect(el);
   return (

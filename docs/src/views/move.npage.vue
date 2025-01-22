@@ -46,13 +46,14 @@ const list = reactive([
 const warpRef = ref<HTMLElement>();
 const getEl = () => warpRef.value!;
 swap(getEl, {
-  model: "swap",
   swapMode: 'hover',
-  onSwapStart(id, currentId) {
-    if (!id || !currentId) return;
-    const idIndex = list.findIndex((el) => el.id == +id);
-    const currentIndex = list.findIndex((el) => el.id == +currentId);
-    list[idIndex] = list.splice(+currentIndex, 1, list[idIndex])[0];
+  items: () => list,
+  keyField: 'id',
+  dropTarget() {
+    return containerRef.value!
+  },
+  onDrop(data) {
+    console.log(data)
   },
 })
 
